@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -19,6 +20,7 @@ public class Car extends Rectangle {
     double angle, xPos, yPos, velocity;
     boolean up, down, left, right;
     final double MAX_SPEED = 10;
+    final double ANGULAR_VELOCITY=.5, CAR_ACCEL=.25;
 
     public Car(Color color, double angle, int x1, int y1) {
         super(x1, y1, 30, 10);
@@ -31,20 +33,20 @@ public class Car extends Rectangle {
     }
 
     public void move() {
-        velocity--;
+        velocity-=CAR_ACCEL/4;
         if (up) {
-            velocity += 4;
+            velocity += CAR_ACCEL;
         }
         if (down) {
-            velocity -= 2;
+            velocity -= CAR_ACCEL/2;
             velocity = Math.max(velocity, -MAX_SPEED / 2);
         } else {
             velocity = Math.max(velocity, 0);
         }
         if(right)
-            angle--;
+            angle+=ANGULAR_VELOCITY;
         if(left)
-            angle++;
+            angle-=ANGULAR_VELOCITY;
         velocity = Math.min(velocity, MAX_SPEED);
         xPos += velocity * Math.cos(angle/360.0*Math.PI*2);
         yPos += velocity * Math.sin(angle/360.0*Math.PI*2);
@@ -52,13 +54,15 @@ public class Car extends Rectangle {
 
     public void draw(Graphics g) {
         Graphics2D g2=(Graphics2D) g;
+        AffineTransform t=g2.getTransform();
         x = (int) Math.round(xPos - width / 2);
         y = (int) Math.round(yPos - height / 2);
         g2.rotate(angle/360.0*Math.PI*2, xPos, yPos);
         g.setColor(color);
         g.fillRect(x, y, width, height);
         g.setColor(Color.BLACK);
-        g.drawString("angle " + angle, x, y);
+        g.drawString("angle " + angle, x, y);    
+        g2.setTransform(t);
     }
 
     public Color getColor() {
