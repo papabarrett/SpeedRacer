@@ -61,7 +61,7 @@ public class Car extends Rectangle {
         g.setColor(color);
         g.fillRect(x, y, width, height);
         g.setColor(Color.BLACK);
-        g.drawString("angle " + angle, x, y);    
+        //g.drawString("angle " + angle, x, y);    
         g2.setTransform(t);
     }
 

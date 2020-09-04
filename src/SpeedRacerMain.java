@@ -17,6 +17,8 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
     JPanel display;
     Car car;
     ArrayList<Block> blocks;
+    ArrayList<Coin> coins;
+    long startTime;
 
     public static void main(String[] args) throws Exception {
         File f=new File("course.txt");
@@ -32,8 +34,11 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         display = new DisplayPanel();
         frame.add(display);
         //put constructor code here
+        startTime=System.currentTimeMillis();
+        System.out.println(startTime);
         car=new Car(Color.GREEN, 0, 250, 250);
         blocks=new ArrayList<Block>();
+        coins=new ArrayList<Coin>();
         try {
             Scanner scan=new Scanner(new File("course.txt"));
                 int countLines=0;
@@ -42,6 +47,8 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
                 for (int i = 0; i < line.length(); i++) {
                     if(line.charAt(i)=='x')
                         blocks.add(new Block(i*50,countLines*50));
+                    if(line.charAt(i)=='c')
+                        coins.add(new Coin(i*50,countLines*50));
                 }
                 countLines++;
             }
@@ -59,12 +66,27 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
 
     public void actionPerformed(ActionEvent e) {
         //type what needs to be performed every time the timer ticks
+        System.out.println(officialTime());
         car.move();
         for (Block block : blocks) {
             if(car.intersects(block)){
                 JOptionPane.showMessageDialog(frame, "You crashed.");
                 System.exit(0);
             }
+        }
+        for (Coin coin : coins) {
+            if(car.intersects(coin))
+                coin.setAvailable(false);
+        }
+        
+        if(coins.size()<1)
+        {
+            JOptionPane.showMessageDialog(frame,"You win!");
+            System.exit(0);
+        }
+        for (int i = 0; i < coins.size(); i++) {    //go through all coins
+            if(!coins.get(i).isAvailable())         //if the selected coin is not available
+                coins.remove(i);                    //remove that coin from the list
         }
         //end your code for timer tick code
         display.repaint();
@@ -106,7 +128,22 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
             for (Block block : blocks) {
                 block.draw(g);
             }
-            
+            for (Coin coin : coins) {
+                coin.draw(g);
+            }
+            g.setColor(Color.white);
+            g.fillRect(0, 0, 60, 15);
+            g.setColor(Color.black);
+            g.drawString(officialTime(), 2, 13);
         }
+    }
+    public String officialTime(){
+        long now=System.currentTimeMillis();
+        long difference=now-startTime;
+        long seconds=difference/1000;
+        long minutes=seconds/60;
+        seconds=seconds%60;
+        long millis=difference%1000;
+        return String.format("%02d:%02d:%03d", minutes, seconds, millis);
     }
 }
