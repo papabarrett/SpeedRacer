@@ -19,10 +19,11 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
     Car car;
     ArrayList<Block> blocks;
     ArrayList<Coin> coins;
+    ArrayList<Explosion> explosions;
     boolean running;
     Image titleScreen;
     long startTime;
-    Image grassImage=new ImageIcon("Grass.png").getImage();
+    Image grassImage = new ImageIcon("Grass.png").getImage();
     int justEnded;
 
     public static void main(String[] args) throws Exception {
@@ -32,7 +33,7 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
     }
 
     public SpeedRacerMain() {
-        justEnded=0;
+        justEnded = 0;
         running = false;
         titleScreen = new ImageIcon("titleScreen.jpg").getImage();
         frame = new JFrame("Speed Racer");
@@ -44,9 +45,10 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         //put constructor code here
         startTime = System.currentTimeMillis();
         System.out.println(startTime);
-        car = new Car(Color.GREEN, 0, 250, 250);
+        car = new Car(Color.GREEN, 0, 250, 250, 25);
         blocks = new ArrayList<Block>();
         coins = new ArrayList<Coin>();
+        explosions = new ArrayList<Explosion>();
         try {
             Scanner scan = new Scanner(new File("course.txt"));
             int countLines = 0;
@@ -72,10 +74,11 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         frame.setFocusable(true);
         frame.setVisible(true);
     }
-    public void startOver(){
+
+    public void startOver() {
         running = false;
         startTime = System.currentTimeMillis();
-        car = new Car(Color.GREEN, 0, 250, 250);
+        car = new Car(Color.GREEN, 0, 250, 250, 25);
         blocks = new ArrayList<Block>();
         coins = new ArrayList<Coin>();
         try {
@@ -98,21 +101,22 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
 
         //end your constructor code
     }
-    public void endGame(){
-        running=false;
+
+    public void endGame() {
+        running = false;
         startOver();
-        justEnded=50;
+        justEnded = 50;
     }
 
     public void startGame() {
-        running = true;        
+        running = true;
         startTime = System.currentTimeMillis();
     }
 
     public void actionPerformed(ActionEvent e) {
         //type what needs to be performed every time the timer ticks
         justEnded--;
-        justEnded=Math.max(0, justEnded);
+        justEnded = Math.max(0, justEnded);
         if (!running) {
             return;
         }
@@ -120,9 +124,17 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         car.move();
         for (Block block : blocks) {
             if (car.intersects(block)) {
-                endGame();
-                JOptionPane.showMessageDialog(frame, "You crashed.");
+                explosions.add(new Explosion((int)car.getX()-3,(int)car.getY()-6));
+                car.getHit(block);
+                if (car.dead()) {
+                    endGame();
+                    JOptionPane.showMessageDialog(frame, "You crashed.");
+                }
             }
+        }
+        for(int i=0; i<explosions.size(); i++){ //check to see if any explosions need to be removed
+            if(explosions.get(i).over())
+                explosions.remove(i);
         }
         for (Coin coin : coins) {
             if (car.intersects(coin)) {
@@ -169,7 +181,7 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
     }
 
     public void keyReleased(KeyEvent e) {
-        if (!running && justEnded==0) {
+        if (!running && justEnded == 0) {
             startGame();
         }
         if (e.getKeyCode() == KeyEvent.VK_UP) {
@@ -198,6 +210,9 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
             }
             for (Coin coin : coins) {
                 coin.draw(g);
+            }
+            for (Explosion explosion : explosions) {
+                explosion.draw(g);
             }
             g.setColor(Color.white);
             g.fillRect(0, 0, 60, 15);

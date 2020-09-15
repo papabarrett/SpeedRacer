@@ -1,7 +1,9 @@
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Rectangle;
+import javax.swing.ImageIcon;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -16,6 +18,7 @@ import java.awt.Rectangle;
 public class Coin extends Rectangle{
     int value;
     boolean available;
+    Image coin=new ImageIcon("coin.png").getImage();
 
     public Coin(int x1, int y1) {
         super(x1, y1, 8, 20);
@@ -24,13 +27,7 @@ public class Coin extends Rectangle{
     }
     
     public void draw(Graphics g){
-        g.setColor(new Color(100,100,100));
-        g.fillOval(x+3, y+3, width, height);
-        g.setColor(new Color(216,192,24));
-        g.fillOval(x, y, width, height);
-        g.setColor(Color.black);
-        g.drawString("|", x+3, y+14);  //come back and fix these so | is in middle
-        g.drawOval(x, y, width, height);
+        g.drawImage(coin, x, y,width,height,null);
     }
 
     public int getValue() {
