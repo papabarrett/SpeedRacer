@@ -2,8 +2,10 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import javax.swing.ImageIcon;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -21,6 +23,7 @@ public class Car extends Rectangle {
     boolean up, down, left, right;
     final double MAX_SPEED = 10;
     final double ANGULAR_VELOCITY=.5, CAR_ACCEL=.25;
+    Image carImage;
 
     public Car(Color color, double angle, int x1, int y1) {
         super(x1, y1, 30, 10);
@@ -30,6 +33,7 @@ public class Car extends Rectangle {
         xPos = x + width / 2.0;
         yPos = y + height / 2.0;
         velocity = 0;
+        carImage = new ImageIcon("greenCar.png").getImage();
     }
 
     public void move() {
@@ -58,9 +62,12 @@ public class Car extends Rectangle {
         x = (int) Math.round(xPos - width / 2);
         y = (int) Math.round(yPos - height / 2);
         g2.rotate(angle/360.0*Math.PI*2, xPos, yPos);
+        /*
         g.setColor(color);
         g.fillRect(x, y, width, height);
         g.setColor(Color.BLACK);
+*/
+        g.drawImage(carImage, x, y, width, height, null);
         //g.drawString("angle " + angle, x, y);    
         g2.setTransform(t);
     }

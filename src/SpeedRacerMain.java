@@ -22,6 +22,7 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
     boolean running;
     Image titleScreen;
     long startTime;
+    Image grassImage=new ImageIcon("Grass.png").getImage();
     int justEnded;
 
     public static void main(String[] args) throws Exception {
@@ -190,6 +191,7 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
             //draw your graphics here
+            g.drawImage(grassImage, 0, 0, frame.getWidth(), frame.getHeight(), null);
             car.draw(g);
             for (Block block : blocks) {
                 block.draw(g);

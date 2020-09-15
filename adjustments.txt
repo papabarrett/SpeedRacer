@@ -1,6 +1,6 @@
 The game will:
-(n)-title screen
-(i)-start over option
+x(n)-title screen
+x(i)-start over option
 (j)-image overlays for objects
 (f)-health points
 (g)	-health bar for player that goes down every time it hits a non-coin object
