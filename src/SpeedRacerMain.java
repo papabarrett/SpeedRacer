@@ -16,18 +16,22 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
     javax.swing.Timer timer;
     JFrame frame;
     JPanel display;
-    Car car;
+    Car car, chaser;
+    ArrayList<EnvCoin> envcoins;
     ArrayList<Block> blocks;
     ArrayList<Coin> coins;
     ArrayList<Explosion> explosions;
     boolean running;
+    int level;
+    final int LEVEL_MAX=3;
     Image titleScreen;
     long startTime;
     Image grassImage = new ImageIcon("Grass.png").getImage();
     int justEnded;
+    boolean coingrabed;
 
     public static void main(String[] args) throws Exception {
-        File f = new File("adjustments.txt");
+        File f = new File("course4.txt");
         f.createNewFile();
         new SpeedRacerMain();
     }
@@ -35,6 +39,7 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
     public SpeedRacerMain() {
         justEnded = 0;
         running = false;
+        coingrabed = false;
         titleScreen = new ImageIcon("titleScreen.jpg").getImage();
         frame = new JFrame("Speed Racer");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -46,11 +51,14 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         startTime = System.currentTimeMillis();
         System.out.println(startTime);
         car = new Car(Color.GREEN, 0, 250, 250, 25);
+        chaser = new Car(Color.GREEN, 0, 200, 250, 25);
         blocks = new ArrayList<Block>();
         coins = new ArrayList<Coin>();
+        envcoins = new ArrayList<EnvCoin>();
         explosions = new ArrayList<Explosion>();
+        level=0;
         try {
-            Scanner scan = new Scanner(new File("course.txt"));
+            Scanner scan = new Scanner(new File("course"+level+".txt"));
             int countLines = 0;
             while (scan.hasNext()) {
                 String line = scan.nextLine();
@@ -60,6 +68,9 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
                     }
                     if (line.charAt(i) == 'c') {
                         coins.add(new Coin(i * 50, countLines * 50));
+                    }
+                    if (line.charAt(i) == 'y') {
+                        envcoins.add(new EnvCoin(i * 50, countLines * 50));
                     }
                 }
                 countLines++;
@@ -81,8 +92,11 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         car = new Car(Color.GREEN, 0, 250, 250, 25);
         blocks = new ArrayList<Block>();
         coins = new ArrayList<Coin>();
+        envcoins = new ArrayList<EnvCoin>();
+        level++;
+        if(level>LEVEL_MAX)level=0;
         try {
-            Scanner scan = new Scanner(new File("course.txt"));
+            Scanner scan = new Scanner(new File("course"+level+".txt"));
             int countLines = 0;
             while (scan.hasNext()) {
                 String line = scan.nextLine();
@@ -92,6 +106,9 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
                     }
                     if (line.charAt(i) == 'c') {
                         coins.add(new Coin(i * 50, countLines * 50));
+                    }
+                    if (line.charAt(i) == 'y') {
+                        envcoins.add(new EnvCoin(i * 50, countLines * 50));
                     }
                 }
                 countLines++;
@@ -121,7 +138,8 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
             return;
         }
         System.out.println(officialTime());
-        car.move();
+        car.movePlayer();
+        chaser.movePlayerChaser(car);
         for (Block block : blocks) {
             if (car.intersects(block)) {
                 explosions.add(new Explosion((int)car.getX()-3,(int)car.getY()-6));
@@ -141,7 +159,7 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
                 coin.setAvailable(false);
             }
         }
-
+        
         if (coins.size() < 1) {
             JOptionPane.showMessageDialog(frame, "You win!");
             endGame();
@@ -152,6 +170,16 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
                 coins.remove(i);                    //remove that coin from the list
             }
         }
+        for (EnvCoin envcoin : envcoins) {
+            if(car.intersects(envcoin)){
+                if(envcoin.available){
+                    envcoin.setAvailable(false);
+                    car.setEnvtime(150);
+                    
+                }
+            }
+        }
+        
         //end your code for timer tick code
         display.repaint();
     }
@@ -203,8 +231,9 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
             //draw your graphics here
-            g.drawImage(grassImage, 0, 0, frame.getWidth(), frame.getHeight(), null);
+         //   g.drawImage(grassImage, 0, 0, frame.getWidth(), frame.getHeight(), null);
             car.draw(g);
+            chaser.draw(g);
             for (Block block : blocks) {
                 block.draw(g);
             }
@@ -214,13 +243,18 @@ public class SpeedRacerMain implements ActionListener, KeyListener {
             for (Explosion explosion : explosions) {
                 explosion.draw(g);
             }
+            for (EnvCoin envcoin : envcoins) {
+                if(envcoin.isAvailable())
+                envcoin.draw(g);}
             g.setColor(Color.white);
             g.fillRect(0, 0, 60, 15);
             g.setColor(Color.black);
             g.drawString(officialTime(), 2, 13);
+            
             if (!running) {
                 g.drawImage(titleScreen, 0, 0, frame.getWidth(), frame.getHeight(), null);
             }
+            
         }
     }
 

@@ -18,11 +18,12 @@ import javax.swing.ImageIcon;
  */
 public class Car extends Rectangle {
 
+    int envtime;
     Color color;
     double angle, xPos, yPos, velocity;
     boolean up, down, left, right;
     final double MAX_SPEED = 10;
-    final double ANGULAR_VELOCITY = .5, CAR_ACCEL = .25;
+    final double ANGULAR_VELOCITY = 3, CAR_ACCEL = .25;
     Image carImage;
     int healthPoints;
     final int MAX_HEALTH_POINTS;
@@ -38,9 +39,79 @@ public class Car extends Rectangle {
         carImage = new ImageIcon("greenCar.png").getImage();
         MAX_HEALTH_POINTS = h;
         healthPoints = h;
+        envtime = 0;
     }
 
-    public void move() {
+    public int getEnvtime() {
+        return envtime;
+    }
+
+    public void setEnvtime(int envtime) {
+        this.envtime = envtime;
+    }
+
+    public int getHealthPoints() {
+        return healthPoints;
+    }
+
+    public void setHealthPoints(int healthPoints) {
+        this.healthPoints = healthPoints;
+    }
+
+    public void movePlayerChaser(Car player) {
+        velocity += Math.random() * .4;
+        if (velocity > 0) {
+            velocity -= CAR_ACCEL / 4;
+        }
+        double xDiff = player.getxPos() - xPos;
+        double yDiff = player.getyPos() - yPos;
+        double hypot = Math.hypot(xDiff, yDiff);
+        double angleTarget = -Math.atan(yDiff / xDiff) * 360 / Math.PI / 2;
+        if (xDiff < 0) {
+            angleTarget += 180;
+        }
+        angleTarget = Math.round(angleTarget);
+        angleTarget += 360;
+        angleTarget %= 360;
+        angle += 360;
+        angle %= 360;
+        System.out.println(angleTarget);
+        if (Math.abs(angle - angleTarget) > 2) {
+            if (angle < angleTarget) {
+                if (angleTarget - angle < 180) {
+                    angle += ANGULAR_VELOCITY;
+                } else {
+                    angle -= ANGULAR_VELOCITY;
+                }
+            } else if (angle > angleTarget) {
+                if (angle - angleTarget < 180) {
+                    angle -= ANGULAR_VELOCITY;
+                } else {
+                    angle += ANGULAR_VELOCITY;
+                }
+
+            }
+        }
+
+        double xMove=hypot/10 * Math.cos(-angle / 360.0 * Math.PI * 2);
+        if(xDiff<0)
+            xMove=-Math.abs(xMove);
+        double yMove=hypot/10 * Math.sin(-angle / 360.0 * Math.PI * 2);
+        if(yDiff<0)
+            yMove=-Math.abs(yMove);
+        xPos += xMove;
+         yPos += yMove;
+//        if(xDiff<0)
+//            xPos+=1;
+//        if(xDiff>0)
+//            xPos-=1;
+//        if(yDiff<0)
+//            yPos+=1;
+//        if(yDiff>0)
+//            yPos-=1;
+    }
+
+    public void movePlayer() {
         if (velocity > 0) {
             velocity -= CAR_ACCEL / 4;
         }
@@ -50,17 +121,25 @@ public class Car extends Rectangle {
         if (down) {
             velocity -= CAR_ACCEL / 2;
         }
-        if( velocity < -MAX_SPEED)
-            velocity=-MAX_SPEED;
-        if (right) {
-            angle += ANGULAR_VELOCITY;
+        if (velocity < -MAX_SPEED) {
+            velocity = -MAX_SPEED;
         }
-        if (left) {
+        if (right) {
             angle -= ANGULAR_VELOCITY;
         }
+        if (left) {
+            angle += ANGULAR_VELOCITY;
+        }
+        angle += 360;
+        angle %= 360;
         velocity = Math.min(velocity, MAX_SPEED);
-        xPos += velocity * Math.cos(angle / 360.0 * Math.PI * 2);
-        yPos += velocity * Math.sin(angle / 360.0 * Math.PI * 2);
+        xPos += velocity * Math.cos(-angle / 360.0 * Math.PI * 2);
+        yPos += velocity * Math.sin(-angle / 360.0 * Math.PI * 2);
+        envtime--;
+        if (envtime < 1) {
+            envtime = 0;
+        }
+
     }
 
     public void draw(Graphics g) {
@@ -68,7 +147,7 @@ public class Car extends Rectangle {
         AffineTransform t = g2.getTransform();
         x = (int) Math.round(xPos - width / 2);
         y = (int) Math.round(yPos - height / 2);
-        g2.rotate(angle / 360.0 * Math.PI * 2, xPos, yPos);
+        g2.rotate(-angle / 360.0 * Math.PI * 2, xPos, yPos);
         /*
         g.setColor(color);
         g.fillRect(x, y, width, height);
@@ -80,22 +159,32 @@ public class Car extends Rectangle {
         g2.setColor(Color.red);
         g2.fillRect(x, y, width, 3);
         g2.setColor(Color.white);
+        if (envtime > 0) {
+            g2.setColor(Color.CYAN);
+        }
         g2.fillRect(x, y, (int) (width * 1.0 * healthPoints / MAX_HEALTH_POINTS), 3);
+        double distanceX = 20 * Math.cos(-angle / 360.0 * Math.PI * 2);
+        double distanceY = 20 * Math.sin(-angle / 360.0 * Math.PI * 2);
+        g.setColor(Color.BLACK);
+        g.drawLine(x, y, (int) (x + distanceX), (int) (y + distanceY));
+        g.drawString("" + angle, x, y);
     }
 
     public void getHit(Block block) {
         System.out.println("xPos " + xPos + " Velocity:" + velocity);
-        healthPoints--;
+        if (envtime < 1) {
+            healthPoints--;
+        }
         velocity = -velocity;
         System.out.println("Swapped Velocity:" + velocity);
         while (this.intersects(block)) {
-            xPos += velocity * Math.cos(angle / 360.0 * Math.PI * 2);
-            yPos += velocity * Math.sin(angle / 360.0 * Math.PI * 2);
+            xPos += velocity * Math.cos(-angle / 360.0 * Math.PI * 2);
+            yPos += velocity * Math.sin(-angle / 360.0 * Math.PI * 2);
             x = (int) Math.round(xPos - width / 2);
             y = (int) Math.round(yPos - height / 2);
         }
-        xPos += velocity * Math.cos(angle / 360.0 * Math.PI * 2);
-        yPos += velocity * Math.sin(angle / 360.0 * Math.PI * 2);
+        xPos += velocity * Math.cos(-angle / 360.0 * Math.PI * 2);
+        yPos += velocity * Math.sin(-angle / 360.0 * Math.PI * 2);
         up = false;
         down = false;
         System.out.println("xPos " + xPos + " Velocity:" + velocity);
